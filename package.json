@@ -1,7 +1,6 @@
 {
   "name": "messenger",
   "version": "1.0.0",
-  "description": "Мессенджер с регистрацией и чатом",
   "main": "server.js",
   "type": "commonjs",
   "scripts": {
