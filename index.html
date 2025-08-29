@@ -34,16 +34,14 @@
       display: flex;
       flex-direction: column;
       overflow: hidden;
+      touch-action: manipulation;
     }
 
-    /* Общие кнопки */
+    /* Общие стили */
     button {
       cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    button:hover {
-      opacity: 0.9;
+      border: none;
+      outline: none;
     }
 
     /* Экран авторизации */
@@ -52,23 +50,22 @@
       align-items: center;
       justify-content: center;
       height: 100vh;
-      background: linear-gradient(135deg, #1a1a1a, #0d0d0d);
+      padding: 20px;
     }
 
     .auth-form {
       background: var(--card-bg);
-      padding: 30px;
+      padding: 24px;
       border-radius: 16px;
       width: 100%;
-      max-width: 400px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-      text-align: center;
-      color: white;
+      max-width: 360px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     }
 
     .auth-form h2 {
+      text-align: center;
       margin-bottom: 20px;
-      font-size: 1.8rem;
+      font-size: 1.6rem;
       color: var(--primary);
       display: flex;
       align-items: center;
@@ -78,34 +75,31 @@
 
     .auth-form input {
       width: 100%;
-      padding: 14px;
-      margin: 12px 0;
-      border: none;
+      padding: 15px;
+      margin: 10px 0;
       border-radius: 12px;
       background: #333;
       color: white;
       font-size: 1rem;
-      outline: none;
     }
 
     .auth-form button {
       background: var(--primary);
       color: white;
-      border: none;
-      padding: 14px;
+      padding: 15px;
       border-radius: 12px;
       width: 100%;
       font-size: 1.1rem;
-      margin-top: 15px;
       font-weight: 600;
+      margin-top: 10px;
     }
 
     .switch {
+      text-align: center;
       color: var(--primary);
-      cursor: pointer;
       margin-top: 15px;
       text-decoration: underline;
-      font-size: 0.9rem;
+      font-size: 0.95rem;
     }
 
     /* Основной интерфейс */
@@ -113,41 +107,57 @@
       display: flex;
       flex-direction: column;
       height: 100vh;
+      position: relative;
     }
 
     .header {
       background: var(--primary);
       color: white;
-      padding: 16px 20px;
+      padding: 16px 16px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       font-weight: 600;
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+      z-index: 10;
     }
 
     .header h3 {
       font-size: 1.3rem;
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
     }
 
-    .chat-container {
+    .header button {
+      background: rgba(255,255,255,0.2);
+      color: white;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
       display: flex;
-      flex: 1;
-      overflow: hidden;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
     }
 
-    /* Сайдбар (друзья) */
+    /* Мобильный сайдбар (друзья) */
     .sidebar {
-      width: 280px;
+      width: 0;
       background: var(--sidebar-bg);
       overflow-y: auto;
       flex-shrink: 0;
-      border-right: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
+      transition: width 0.3s ease;
+      position: absolute;
+      top: 60px;
+      left: 0;
+      bottom: 0;
+      z-index: 100;
+      box-shadow: 2px 0 10px rgba(0,0,0,0.3);
+    }
+
+    .sidebar.open {
+      width: 280px;
     }
 
     .search-box {
@@ -158,12 +168,11 @@
 
     .search-box input {
       width: 70%;
-      padding: 10px 12px;
+      padding: 10px;
       border: none;
       border-radius: 6px;
       background: #333;
       color: white;
-      margin-right: 8px;
     }
 
     .search-box button {
@@ -172,33 +181,26 @@
       border: none;
       padding: 10px;
       border-radius: 6px;
-      width: 20%;
-    }
-
-    #searchResult {
-      padding: 10px;
-      background: #222;
+      width: 25%;
     }
 
     #searchResult .result-item {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 10px;
+      padding: 12px;
       background: #333;
-      margin-bottom: 8px;
+      margin: 8px;
       border-radius: 8px;
-      font-size: 0.9rem;
     }
 
     .friend-item {
-      padding: 12px 16px;
       display: flex;
       align-items: center;
       gap: 12px;
-      cursor: pointer;
+      padding: 14px 16px;
       border-bottom: 1px solid var(--border);
-      transition: background 0.2s;
+      cursor: pointer;
     }
 
     .friend-item:hover {
@@ -206,8 +208,8 @@
     }
 
     .friend-avatar {
-      width: 40px;
-      height: 40px;
+      width: 44px;
+      height: 44px;
       border-radius: 50%;
       background: var(--primary);
       display: flex;
@@ -215,7 +217,7 @@
       justify-content: center;
       color: white;
       font-weight: bold;
-      font-size: 0.95rem;
+      font-size: 1rem;
     }
 
     .friend-info {
@@ -223,31 +225,44 @@
     }
 
     .friend-name {
-      font-size: 0.95rem;
+      font-size: 1rem;
       font-weight: 600;
     }
 
     .friend-status {
-      font-size: 0.8rem;
+      font-size: 0.85rem;
       color: var(--text-muted);
     }
 
     /* Чат */
+    .chat-container {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+      margin-top: 0;
+    }
+
     .chat-area {
       flex: 1;
-      padding: 20px;
+      padding: 16px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 12px;
       background: var(--bg);
+      margin-left: 0;
+      transition: margin-left 0.3s ease;
+    }
+
+    .chat-area.shifted {
+      margin-left: 280px;
     }
 
     .message {
-      max-width: 70%;
+      max-width: 75%;
       padding: 12px 16px;
       border-radius: 18px;
-      font-size: 0.95rem;
+      font-size: 1rem;
       line-height: 1.5;
       word-wrap: break-word;
       animation: fadeIn 0.3s ease-out;
@@ -281,7 +296,7 @@
 
     .input-area {
       display: flex;
-      padding: 14px;
+      padding: 12px 12px 20px 12px;
       background: var(--sidebar-bg);
       border-top: 1px solid var(--border);
     }
@@ -293,69 +308,56 @@
       border-radius: 24px;
       background: #333;
       color: white;
-      outline: none;
       font-size: 1rem;
     }
 
     .input-area button {
       margin-left: 10px;
-      padding: 0 20px;
       background: var(--primary);
       color: white;
-      border: none;
-      border-radius: 24px;
-      cursor: pointer;
-      font-size: 1.2rem;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      width: 56px;
-      transition: background 0.2s;
-    }
-
-    .input-area button:hover {
-      background: var(--primary-dark);
     }
 
     /* Профиль */
     .profile-screen {
+      display: none;
       padding: 20px;
     }
 
     .profile-screen p {
-      margin: 12px 0;
+      margin: 16px 0;
       font-size: 1.1rem;
     }
 
     .profile-screen button {
-      margin-top: 30px;
       background: #dc3545;
       color: white;
+      padding: 15px;
       border: none;
-      padding: 14px;
-      width: 100%;
       border-radius: 8px;
+      width: 100%;
       font-size: 1.1rem;
     }
 
-    /* Адаптивность */
-    @media (max-width: 768px) {
-      .sidebar {
-        width: 80px;
-      }
+    /* Overlay при открытом меню */
+    .overlay {
+      display: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 99;
+    }
 
-      .friend-info, .search-box input, .search-box button {
-        display: none;
-      }
-
-      .friend-avatar {
-        margin: 0 auto;
-      }
-
-      .search-box {
-        display: flex;
-        justify-content: center;
-      }
+    .overlay.active {
+      display: block;
     }
   </style>
 </head>
@@ -380,43 +382,50 @@
     </div>
   </div>
 
-  <!-- Основной чат -->
+  <!-- Основной интерфейс -->
   <div class="main-app" id="mainApp" style="display: none;">
     <div class="header">
-      <h3><i class="fas fa-comments"></i> Чат</h3>
-      <button class="profile-btn" id="openProfile"><i class="fas fa-user"></i></button>
+      <button id="menuBtn"><i class="fas fa-bars"></i></button>
+      <h3><i class="fas fa-comment-dots"></i> Чат</h3>
+      <button id="profileBtn"><i class="fas fa-user"></i></button>
     </div>
+
     <div class="chat-container">
-      <div class="sidebar">
+      <!-- Сайдбар (друзья) -->
+      <div class="sidebar" id="sidebar">
         <div class="search-box">
           <input type="text" id="searchFriend" placeholder="Найти @" />
           <button id="searchBtn">🔍</button>
         </div>
         <div id="searchResult"></div>
-        <div id="friends" style="padding: 10px;"></div> <!-- Здесь будут друзья -->
+        <div id="friends"></div>
       </div>
 
-      <div style="flex: 1; display: flex; flex-direction: column;">
-        <div class="chat-area" id="chatArea"></div>
-        <div class="input-area">
-          <input type="text" id="messageInput" placeholder="Напишите сообщение..." />
-          <button id="sendBtn"><i class="fas fa-paper-plane"></i></button>
-        </div>
-      </div>
+      <!-- Оверлей -->
+      <div class="overlay" id="overlay"></div>
+
+      <!-- Чат -->
+      <div class="chat-area" id="chatArea"></div>
+    </div>
+
+    <div class="input-area">
+      <input type="text" id="messageInput" placeholder="Сообщение..." />
+      <button id="sendBtn"><i class="fas fa-paper-plane"></i></button>
     </div>
   </div>
 
   <!-- Профиль -->
   <div class="main-app" id="profileScreen" style="display: none;">
     <div class="header">
-      <h3><i class="fas fa-user"></i> Профиль</h3>
-      <button class="back-btn" id="backToChat"><i class="fas fa-arrow-left"></i></button>
+      <button id="backToChat"><i class="fas fa-arrow-left"></i></button>
+      <h3>Профиль</h3>
+      <div style="width: 40px;"></div>
     </div>
-    <div class="profile-screen">
+    <div style="padding: 20px; flex: 1;">
       <p><strong>Имя:</strong> <span id="profileName"></span></p>
       <p><strong>ID:</strong> <span id="profileId"></span></p>
       <p><strong>Друзей:</strong> <span id="profileFriendsCount">0</span></p>
-      <button id="logoutBtn">
+      <button id="logoutBtn" style="margin-top: 30px;">
         <i class="fas fa-sign-out-alt"></i> Выйти
       </button>
     </div>
@@ -441,15 +450,15 @@
       const searchBtn = document.getElementById('searchBtn');
       const searchResult = document.getElementById('searchResult');
       const sendBtn = document.getElementById('sendBtn');
-      const openProfile = document.getElementById('openProfile');
+      const menuBtn = document.getElementById('menuBtn');
+      const profileBtn = document.getElementById('profileBtn');
       const backToChat = document.getElementById('backToChat');
       const logoutBtn = document.getElementById('logoutBtn');
-      const profileName = document.getElementById('profileName');
-      const profileId = document.getElementById('profileId');
-      const profileFriendsCount = document.getElementById('profileFriendsCount');
-      const authScreen = document.getElementById('authScreen');
-      const mainApp = document.getElementById('mainApp');
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('overlay');
       const profileScreen = document.getElementById('profileScreen');
+      const mainApp = document.getElementById('mainApp');
+      const authScreen = document.getElementById('authScreen');
 
       let currentUser = null;
       let socket = null;
@@ -482,11 +491,11 @@
         .then(data => {
           if (data.error) alert(data.error);
           else {
-            alert('Регистрация успешна!');
+            alert('Успешно зарегистрированы!');
             showLogin.click();
           }
         })
-        .catch(err => alert('Ошибка соединения'));
+        .catch(() => alert('Ошибка сервера'));
       });
 
       // Вход
@@ -513,8 +522,7 @@
             updateProfile();
             renderFriends();
           }
-        })
-        .catch(err => alert('Ошибка входа'));
+        });
       });
 
       function showMainApp() {
@@ -551,7 +559,29 @@
       sendBtn.addEventListener('click', sendMessage);
       messageInput.addEventListener('keypress', e => e.key === 'Enter' && sendMessage());
 
-      // Поиск друга
+      // Меню (друзья)
+      menuBtn.addEventListener('click', () => {
+        sidebar.classList.toggle('open');
+        overlay.classList.toggle('active');
+      });
+
+      overlay.addEventListener('click', () => {
+        sidebar.classList.remove('open');
+        overlay.classList.remove('active');
+      });
+
+      // Профиль
+      profileBtn.addEventListener('click', () => {
+        mainApp.style.display = 'none';
+        profileScreen.style.display = 'flex';
+      });
+
+      backToChat.addEventListener('click', () => {
+        profileScreen.style.display = 'none';
+        mainApp.style.display = 'flex';
+      });
+
+      // Поиск
       searchBtn.addEventListener('click', () => {
         const friendId = searchFriend.value.trim().replace('@', '');
         if (!friendId || friendId === currentUser.id) return;
@@ -562,13 +592,13 @@
               searchResult.innerHTML = `
                 <div class="result-item">
                   <div>
-                    <i class="fas fa-user"></i> <strong>${data.name}</strong>
-                    <div style="font-size:0.8rem; color: #aaa;">@${data.id}</div>
+                    <strong>${data.name}</strong>
+                    <div style="font-size:0.8rem; color:#aaa;">@${data.id}</div>
                   </div>
-                  <button onclick="addFriend('${data.id}', '${data.name}')">Добавить</button>
+                  <button onclick="addFriend('${data.id}', '${data.name}')">➕</button>
                 </div>`;
             } else {
-              searchResult.innerHTML = '<p style="color:#dc3545;">Пользователь не найден</p>';
+              searchResult.innerHTML = '<div style="color:#dc3545; padding:10px;">Не найден</div>';
             }
           });
       });
@@ -584,7 +614,7 @@
         updateProfile();
         searchResult.innerHTML = '';
         searchFriend.value = '';
-        alert(`@${name} добавлен в друзья!`);
+        alert(`@${name} добавлен!`);
       };
 
       // Рендер друзей
@@ -597,30 +627,19 @@
           div.innerHTML = `
             <div class="friend-avatar">${id.charAt(0).toUpperCase()}</div>
             <div class="friend-info">
-              <div class="friend-name">${id}</div>
-              <div class="friend-status">был(а) недавно</div>
+              <div class="friend-name">@${id}</div>
+              <div class="friend-status">в сети</div>
             </div>
           `;
           container.appendChild(div);
         });
       }
 
-      // Профиль
-      openProfile.addEventListener('click', () => {
-        mainApp.style.display = 'none';
-        profileScreen.style.display = 'flex';
-      });
-
-      backToChat.addEventListener('click', () => {
-        profileScreen.style.display = 'none';
-        mainApp.style.display = 'flex';
-      });
-
       function updateProfile() {
         if (currentUser) {
-          profileName.textContent = currentUser.name;
-          profileId.textContent = '@' + currentUser.id;
-          profileFriendsCount.textContent = friends.length;
+          document.getElementById('profileName').textContent = currentUser.name;
+          document.getElementById('profileId').textContent = '@' + currentUser.id;
+          document.getElementById('profileFriendsCount').textContent = friends.length;
         }
       }
 
