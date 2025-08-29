@@ -359,6 +359,32 @@
     .overlay.active {
       display: block;
     }
+
+    /* Аватар в сообщении */
+    .message-with-avatar {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .message-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+    }
+
+    .message-content {
+      display: flex;
+      flex-direction: column;
+    }
   </style>
 </head>
 <body>
@@ -463,6 +489,7 @@
       let currentUser = null;
       let socket = null;
       let friends = [];
+      let friendsAvatars = {};
 
       // Переключение форм
       showRegister?.addEventListener('click', () => {
@@ -513,7 +540,11 @@
         .then(data => {
           if (data.error) alert(data.error);
           else {
-            currentUser = { name: data.name, id: data.id };
+            currentUser = { 
+              name: data.name, 
+              id: data.id,
+              avatar: data.avatar 
+            };
             friends = data.friends || [];
             localStorage.setItem('user', JSON.stringify(currentUser));
             localStorage.setItem('friends', JSON.stringify(friends));
@@ -537,7 +568,7 @@
         socket.onmessage = (event) => {
           const data = JSON.parse(event.data);
           if (data.type === 'chat') {
-            addMessage(data.name, data.message, data.senderId === currentUser.id ? 'sent' : 'received');
+            addMessage(data.name, data.message, data.senderId === currentUser.id ? 'sent' : 'received', data.avatar);
           }
         };
       }
@@ -550,14 +581,45 @@
           type: 'chat',
           senderId: currentUser.id,
           name: currentUser.name,
-          message: text
+          message: text,
+          avatar: currentUser.avatar
         }));
-        addMessage(currentUser.name, text, 'sent');
+        addMessage(currentUser.name, text, 'sent', currentUser.avatar);
         messageInput.value = '';
       }
 
       sendBtn.addEventListener('click', sendMessage);
       messageInput.addEventListener('keypress', e => e.key === 'Enter' && sendMessage());
+
+      // Добавление сообщения с аватаром
+      function addMessage(name, text, type, avatar) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message-with-avatar';
+        
+        if (type === 'received') {
+          messageDiv.innerHTML = `
+            <div class="message-avatar" style="background-color: ${avatar?.color || '#007bff'};">
+              ${avatar?.initial || name.charAt(0).toUpperCase()}
+            </div>
+            <div class="message-content">
+              <div class="user-name">${name}</div>
+              <div class="message received">${text}</div>
+            </div>
+          `;
+        } else {
+          messageDiv.innerHTML = `
+            <div class="message-content" style="align-items: flex-end;">
+              <div class="message sent">${text}</div>
+            </div>
+            <div class="message-avatar" style="background-color: ${avatar?.color || '#007bff'};">
+              ${avatar?.initial || name.charAt(0).toUpperCase()}
+            </div>
+          `;
+        }
+        
+        chatArea.appendChild(messageDiv);
+        chatArea.scrollTop = chatArea.scrollHeight;
+      }
 
       // Меню (друзья)
       menuBtn.addEventListener('click', () => {
@@ -581,35 +643,44 @@
         mainApp.style.display = 'flex';
       });
 
-      // Поиск
+      // Поиск пользователей
       searchBtn.addEventListener('click', () => {
-        const friendId = searchFriend.value.trim().replace('@', '');
-        if (!friendId || friendId === currentUser.id) return;
-        fetch(`/user?id=${friendId}`)
+        const friendId = searchFriend.value.trim().replace('@', '').toLowerCase();
+        if (!friendId) return alert('Введите ID пользователя');
+        if (friendId === currentUser.id.toLowerCase()) return alert('Нельзя добавить себя');
+        
+        fetch(`/user?id=${encodeURIComponent(friendId)}`)
           .then(res => res.json())
           .then(data => {
-            if (data.exists) {
+            if (data.error) {
+              searchResult.innerHTML = `<div style="color:#dc3545; padding:10px;">${data.error}</div>`;
+            } else if (data.exists) {
               searchResult.innerHTML = `
                 <div class="result-item">
                   <div>
                     <strong>${data.name}</strong>
                     <div style="font-size:0.8rem; color:#aaa;">@${data.id}</div>
                   </div>
-                  <button onclick="addFriend('${data.id}', '${data.name}')">➕</button>
+                  <button onclick="addFriend('${data.id}', '${data.name}', ${JSON.stringify(data.avatar)})">➕</button>
                 </div>`;
             } else {
-              searchResult.innerHTML = '<div style="color:#dc3545; padding:10px;">Не найден</div>';
+              searchResult.innerHTML = '<div style="color:#dc3545; padding:10px;">Пользователь не найден</div>';
             }
+          })
+          .catch(err => {
+            searchResult.innerHTML = '<div style="color:#dc3545; padding:10px;">Ошибка поиска</div>';
           });
       });
 
-      window.addFriend = (id, name) => {
+      window.addFriend = (id, name, avatar) => {
         if (friends.includes(id)) {
           alert('Уже в друзьях');
           return;
         }
         friends.push(id);
+        friendsAvatars[id] = avatar;
         localStorage.setItem('friends', JSON.stringify(friends));
+        localStorage.setItem('friendsAvatars', JSON.stringify(friendsAvatars));
         renderFriends();
         updateProfile();
         searchResult.innerHTML = '';
@@ -622,10 +693,12 @@
         const container = document.getElementById('friends');
         container.innerHTML = '';
         friends.forEach(id => {
+          const avatar = friendsAvatars[id] || { color: '#007bff', initial: id.charAt(0).toUpperCase() };
+          
           const div = document.createElement('div');
           div.className = 'friend-item';
           div.innerHTML = `
-            <div class="friend-avatar">${id.charAt(0).toUpperCase()}</div>
+            <div class="friend-avatar" style="background-color: ${avatar.color};">${avatar.initial}</div>
             <div class="friend-info">
               <div class="friend-name">@${id}</div>
               <div class="friend-status">в сети</div>
@@ -646,6 +719,7 @@
       logoutBtn.addEventListener('click', () => {
         localStorage.removeItem('user');
         localStorage.removeItem('friends');
+        localStorage.removeItem('friendsAvatars');
         location.reload();
       });
 
@@ -655,6 +729,7 @@
         if (savedUser) {
           currentUser = JSON.parse(savedUser);
           friends = JSON.parse(localStorage.getItem('friends') || '[]');
+          friendsAvatars = JSON.parse(localStorage.getItem('friendsAvatars') || '{}');
           showMainApp();
           connectWebSocket();
           updateProfile();
