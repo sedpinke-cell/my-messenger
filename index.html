@@ -10,7 +10,7 @@
       margin: 0;
       padding: 0;
       box-sizing: border-box;
-      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: 'Segoe UI', sans-serif;
     }
 
     body {
@@ -20,11 +20,6 @@
       display: flex;
       flex-direction: column;
       overflow: hidden;
-    }
-
-    /* Адаптивность */
-    @media (max-width: 600px) {
-      .main-app { border-radius: 0; height: 100vh; }
     }
 
     .auth-screen, .main-app {
@@ -157,7 +152,6 @@
       background: #333;
       color: white;
       outline: none;
-      font-size: 1rem;
     }
 
     .input-area button {
@@ -175,16 +169,6 @@
       width: 50px;
     }
 
-    ::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background: #555;
-      border-radius: 10px;
-    }
-
-    /* Формы */
     .auth-form {
       padding: 40px 20px;
       text-align: center;
@@ -205,7 +189,6 @@
       border-radius: 8px;
       background: #333;
       color: white;
-      font-size: 1rem;
     }
 
     .auth-form button {
@@ -217,7 +200,6 @@
       width: 100%;
       font-size: 1.1rem;
       margin-top: 15px;
-      cursor: pointer;
     }
 
     .switch {
@@ -227,34 +209,44 @@
       text-decoration: underline;
     }
 
-    /* Профиль */
-    .profile-screen {
-      padding: 20px;
+    .search-box {
+      padding: 10px;
     }
 
-    .edit-profile-form input {
-      width: 100%;
-      padding: 12px;
-      margin: 10px 0;
+    .search-box input {
+      width: 70%;
+      padding: 10px;
       border: 1px solid #444;
-      border-radius: 8px;
+      border-radius: 6px;
       background: #333;
       color: white;
     }
 
-    .edit-profile-form button {
+    .search-box button {
       background: #007bff;
       color: white;
       border: none;
       padding: 10px;
-      border-radius: 8px;
-      width: 100%;
+      width: 25%;
+      border-radius: 6px;
+    }
+
+    #searchResult {
+      padding: 10px;
+    }
+
+    #searchResult button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 4px;
     }
   </style>
 </head>
 <body>
 
-  <!-- Экран авторизации -->
+  <!-- Авторизация -->
   <div class="auth-screen" id="authScreen">
     <div class="auth-form" id="loginForm">
       <h2>💬 ChatX</h2>
@@ -282,7 +274,11 @@
 
     <div class="chat-container">
       <div class="sidebar" id="friendsList">
-        <!-- Друзья будут здесь -->
+        <div class="search-box">
+          <input type="text" id="searchFriend" placeholder="Найти @" />
+          <button id="searchBtn">🔍</button>
+        </div>
+        <div id="searchResult"></div>
       </div>
 
       <div style="flex: 1; display: flex; flex-direction: column;">
@@ -301,28 +297,18 @@
       <h3><i class="fas fa-user"></i> Профиль</h3>
       <button class="back-btn" id="backToChat"><i class="fas fa-arrow-left"></i></button>
     </div>
-    <div class="profile-screen">
+    <div class="profile-screen" style="padding:20px;">
       <p><strong>Имя:</strong> <span id="profileName"></span></p>
       <p><strong>ID:</strong> <span id="profileId"></span></p>
       <p><strong>Друзей:</strong> <span id="profileFriendsCount">0</span></p>
-
-      <div class="edit-profile-form">
-        <h4><i class="fas fa-edit"></i> Изменить имя</h4>
-        <input type="text" id="editName" placeholder="Новое имя" />
-        <button id="saveName">Сохранить</button>
-      </div>
-      <button id="logoutBtn" style="margin-top: 20px; background: #dc3545; color: white; border: none; padding: 10px; border-radius: 6px; width: 100%;">
+      <button id="logoutBtn" style="margin-top:20px; background:#dc3545; color:white; border:none; padding:10px; width:100%; border-radius:6px;">
         <i class="fas fa-sign-out-alt"></i> Выйти
       </button>
     </div>
   </div>
 
-  <!-- ВСЁ JavaScript в одном файле -->
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      console.log('ChatX: Страница загружена');
-
-      // === Элементы ===
       const loginForm = document.getElementById('loginForm');
       const registerForm = document.getElementById('registerForm');
       const showRegister = document.getElementById('showRegister');
@@ -337,9 +323,10 @@
       const messageInput = document.getElementById('messageInput');
       const chatArea = document.getElementById('chatArea');
       const friendsList = document.getElementById('friendsList');
-      const addFriendInput = document.getElementById('addFriendInput');
+      const searchFriend = document.getElementById('searchFriend');
+      const searchBtn = document.getElementById('searchBtn');
+      const searchResult = document.getElementById('searchResult');
       const sendBtn = document.getElementById('sendBtn');
-      const addFriendBtn = document.getElementById('addFriendBtn');
       const openProfile = document.getElementById('openProfile');
       const backToChat = document.getElementById('backToChat');
       const logoutBtn = document.getElementById('logoutBtn');
@@ -354,74 +341,44 @@
       let socket = null;
       let friends = [];
 
-      // === Проверка элементов ===
-      if (!loginBtn || !registerBtn) {
-        alert('Ошибка: не найдены кнопки. Проверь id в HTML');
-        console.error('❌ Элементы не найдены');
-        return;
-      }
+      // Переключение форм
+      showRegister?.addEventListener('click', () => {
+        loginForm.style.display = 'none';
+        registerForm.style.display = 'block';
+      });
+      showLogin?.addEventListener('click', () => {
+        registerForm.style.display = 'none';
+        loginForm.style.display = 'block';
+      });
 
-      // === Переключение форм ===
-      if (showRegister && showLogin) {
-        showRegister.addEventListener('click', () => {
-          loginForm.style.display = 'none';
-          registerForm.style.display = 'block';
-        });
-
-        showLogin.addEventListener('click', () => {
-          registerForm.style.display = 'none';
-          loginForm.style.display = 'block';
-        });
-      }
-
-      // === Регистрация ===
+      // Регистрация
       registerBtn.addEventListener('click', () => {
         const username = regUsername.value.trim().replace('@', '');
         const password = regPassword.value;
         const confirm = regConfirm.value;
-
-        if (!username || !password) {
-          alert('Введите имя и пароль');
-          return;
-        }
-        if (password !== confirm) {
-          alert('Пароли не совпадают');
-          return;
-        }
+        if (!username || !password) return alert('Заполните поля');
+        if (password !== confirm) return alert('Пароли не совпадают');
 
         fetch('/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username, password })
         })
-        .then(res => {
-          if (!res.ok) throw new Error('Сетевая ошибка');
-          return res.json();
-        })
+        .then(res => res.json())
         .then(data => {
-          if (data.error) {
-            alert('Ошибка: ' + data.error);
-          } else {
-            alert('Регистрация успешна!');
-            registerForm.style.display = 'none';
-            loginForm.style.display = 'block';
+          if (data.error) alert(data.error);
+          else {
+            alert('Успешно!');
+            showLogin.click();
           }
-        })
-        .catch(err => {
-          console.error('Ошибка:', err);
-          alert('Ошибка подключения к серверу');
         });
       });
 
-      // === Вход ===
+      // Вход
       loginBtn.addEventListener('click', () => {
         const username = loginUsername.value.trim().replace('@', '');
         const password = loginPassword.value;
-
-        if (!username || !password) {
-          alert('Введите имя и пароль');
-          return;
-        }
+        if (!username || !password) return alert('Введите данные');
 
         fetch('/login', {
           method: 'POST',
@@ -430,9 +387,8 @@
         })
         .then(res => res.json())
         .then(data => {
-          if (data.error) {
-            alert('Ошибка: ' + data.error);
-          } else {
+          if (data.error) alert(data.error);
+          else {
             currentUser = { name: data.name, id: data.id };
             friends = data.friends || [];
             localStorage.setItem('user', JSON.stringify(currentUser));
@@ -442,10 +398,6 @@
             updateProfile();
             renderFriends();
           }
-        })
-        .catch(err => {
-          console.error('Ошибка:', err);
-          alert('Ошибка подключения к серверу');
         });
       });
 
@@ -454,46 +406,31 @@
         mainApp.style.display = 'flex';
       }
 
-      // === WebSocket ===
+      // WebSocket
       function connectWebSocket() {
         const wsHost = window.location.protocol === 'https:' ? `wss://${window.location.host}` : `ws://${window.location.host}`;
         socket = new WebSocket(wsHost);
-
-        socket.onopen = () => {
-          console.log('✅ WebSocket подключён');
-        };
-
         socket.onmessage = (event) => {
-          try {
-            const data = JSON.parse(event.data);
-            if (data.type === 'chat') {
-              addMessage(data.name, data.message, data.senderId === currentUser.id ? 'sent' : 'received');
-            }
-          } catch (e) {
-            console.error('Ошибка обработки сообщения:', e);
+          const data = JSON.parse(event.data);
+          if (data.type === 'chat') {
+            addMessage(data.name, data.message, data.senderId === currentUser.id ? 'sent' : 'received');
           }
         };
-
-        socket.onerror = (e) => console.error('WebSocket ошибка:', e);
-        socket.onclose = () => console.log('WebSocket закрыт');
       }
 
-      // === Сообщения ===
+      // Сообщения
       function addMessage(name, text, type) {
         const messageDiv = document.createElement('div');
         messageDiv.classList.add('message', type);
-
         if (type === 'received') {
           const nameDiv = document.createElement('div');
           nameDiv.classList.add('user-name');
           nameDiv.textContent = name;
           messageDiv.appendChild(nameDiv);
         }
-
         const textDiv = document.createElement('div');
         textDiv.textContent = text;
         messageDiv.appendChild(textDiv);
-
         chatArea.appendChild(messageDiv);
         chatArea.scrollTop = chatArea.scrollHeight;
       }
@@ -501,15 +438,12 @@
       function sendMessage() {
         const text = messageInput.value.trim();
         if (!text || !socket || socket.readyState !== WebSocket.OPEN) return;
-
-        const msg = {
+        socket.send(JSON.stringify({
           type: 'chat',
           senderId: currentUser.id,
           name: currentUser.name,
           message: text
-        };
-
-        socket.send(JSON.stringify(msg));
+        }));
         addMessage(currentUser.name, text, 'sent');
         messageInput.value = '';
       }
@@ -517,69 +451,76 @@
       sendBtn.addEventListener('click', sendMessage);
       messageInput.addEventListener('keypress', e => e.key === 'Enter' && sendMessage());
 
-      // === Друзья ===
+      // Поиск друзей
+      searchBtn.addEventListener('click', () => {
+        const friendId = searchFriend.value.trim().replace('@', '');
+        if (!friendId) return;
+        fetch(`/user?id=${friendId}`)
+          .then(res => res.json())
+          .then(data => {
+            if (data.exists && friendId !== currentUser.id) {
+              searchResult.innerHTML = `
+                <div style="margin:10px 0; padding:10px; background:#333; border-radius:6px;">
+                  🖼️ <strong>${data.name}</strong> 
+                  <button onclick="addFriend('${data.id}')" style="float:right;">Добавить</button>
+                </div>`;
+            } else {
+              searchResult.innerHTML = '<p style="color:#dc3545;">Не найден</p>';
+            }
+          });
+      });
+
+      window.addFriend = (friendId) => {
+        if (friends.includes(friendId)) {
+          alert('Уже в друзьях');
+          return;
+        }
+        friends.push(friendId);
+        localStorage.setItem('friends', JSON.stringify(friends));
+        renderFriends();
+        updateProfile();
+        searchResult.innerHTML = '';
+        searchFriend.value = '';
+        alert('Друг добавлен!');
+      };
+
+      // Рендер друзей
       function renderFriends() {
-        friendsList.innerHTML = '';
-        friends.forEach(friendId => {
+        const container = friendsList.querySelector('#friends');
+        container.innerHTML = '';
+        friends.forEach(id => {
           const div = document.createElement('div');
           div.className = 'friend-item';
-          if (friendId === currentChat) div.classList.add('active');
-          div.onclick = () => openChat(friendId);
-
-          const avatar = document.createElement('div');
-          avatar.className = 'friend-avatar';
-          avatar.textContent = friendId.charAt(0).toUpperCase();
-
-          const name = document.createElement('div');
-          name.textContent = '@' + friendId;
-
-          div.appendChild(avatar);
-          div.appendChild(name);
-          friendsList.appendChild(div);
+          div.innerHTML = `
+            <div class="friend-avatar">${id.charAt(0).toUpperCase()}</div>
+            @${id}
+          `;
+          div.onclick = () => openChat(id);
+          container.appendChild(div);
         });
       }
 
-      let currentChat = null;
-      function openChat(friendId) {
-        currentChat = friendId;
-        chatArea.innerHTML = '';
-        renderFriends();
-      }
-
-      // === Профиль ===
+      // Профиль
       openProfile.addEventListener('click', () => {
         mainApp.style.display = 'none';
         profileScreen.style.display = 'flex';
-        editName.value = currentUser.name;
       });
-
       backToChat.addEventListener('click', () => {
         profileScreen.style.display = 'none';
         mainApp.style.display = 'flex';
       });
-
       function updateProfile() {
         profileName.textContent = currentUser.name;
         profileId.textContent = '@' + currentUser.id;
         profileFriendsCount.textContent = friends.length;
       }
-
-      saveName.addEventListener('click', () => {
-        const newName = editName.value.trim();
-        if (!newName) return;
-        currentUser.name = newName;
-        localStorage.setItem('user', JSON.stringify(currentUser));
-        updateProfile();
-        alert('Имя изменено');
-      });
-
       logoutBtn.addEventListener('click', () => {
         localStorage.removeItem('user');
         localStorage.removeItem('friends');
         location.reload();
       });
 
-      // === Проверка сессии ===
+      // Проверка сессии
       function checkSession() {
         const savedUser = localStorage.getItem('user');
         if (savedUser) {
@@ -591,7 +532,6 @@
           renderFriends();
         }
       }
-
       checkSession();
     });
   </script>
